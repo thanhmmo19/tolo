@@ -29,17 +29,17 @@
       align-items: center;
       margin-bottom: 20px;
       padding: 10px;
-      border: 3px solid #FFD700; /* Thêm border vàng */
-      border-radius: 10px; /* Bo tròn viền */
-      background-color: rgba(0, 0, 0, 0.7); /* Nền đen mờ để nổi bật */
-      box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); /* Highlight khung */
+      border: 3px solid #FFD700;
+      border-radius: 10px;
+      background-color: rgba(0, 0, 0, 0.7);
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
     }
     .lucky-number {
-      font-size: 2.5rem; /* Tăng kích thước chữ */
+      font-size: 2.5rem;
       font-weight: bold;
-      color: #FFD700; /* Màu vàng nổi bật */
-      margin: 0 20px; /* Khoảng cách giữa các pair */
-      text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5); /* Đổ bóng chữ */
+      color: #FFD700;
+      margin: 0 20px;
+      text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
     }
     .wheel-container {
       position: relative;
@@ -106,18 +106,20 @@
       left: 50%;
       transform: translate(-50%, -50%);
       width: 80%;
-      max-width: 300px;
-      background-color: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      max-width: 400px;
+      background-color: #222;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
       display: none;
       z-index: 1000;
       text-align: center;
+      color: white;
     }
     .modal h2 {
       font-size: 2.5rem;
-      color: #FF5733;
+      color: #FFD700;
+      text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
       margin-bottom: 20px;
     }
     .modal button {
@@ -143,7 +145,7 @@
       width: 10px;
       height: 10px;
       background-color: rgba(255, 87, 51, 0.8);
-      animation: fall 3s ease-out forwards;
+      animation: fall 3s ease-out infinite;
     }
     @keyframes fall {
       0% {
@@ -188,11 +190,12 @@
       ['01', '02', '03', '04', '05'],
       ['11', '22', '33', '44', '55', '66']
     ];
-    const colors = ['#FF5733', '#33FF57', '#3357FF', '#FF33A1', '#F3FF33', '#FF8C33'];
+    const colors = ['#FF5733', '#336600', '#0033CC', '#CC3399', '#afa939', '#FF8C33'];
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
 
     let selectedPool = null;
+    const durations = [15000, 30000, 50000]; // Updated durations
 
     function drawWheelAtAngle(pool, angle) {
       const numSegments = pool.length;
@@ -209,7 +212,6 @@
         ctx.fillStyle = colors[i % colors.length];
         ctx.fill();
 
-        // Text
         const textAngle = startAngle + angleSegment / 2;
         const x = centerX + 180 * Math.cos(textAngle);
         const y = centerY + 180 * Math.sin(textAngle);
@@ -226,8 +228,10 @@
         alert('Please select a pair first!');
         return;
       }
+      const poolIndex = pools.indexOf(selectedPool);
+      const duration = durations[poolIndex];
 
-      spinWheel(selectedPool, 8000, (result) => {
+      spinWheel(selectedPool, duration, (result) => {
         const index = pools.indexOf(selectedPool) + 1;
         document.getElementById(`number${index}`).textContent = result;
 
@@ -247,8 +251,7 @@
 
       const selectedAngle = randomIndex * angleSegment;
       const offsetAngle = angleSegment / 2;
-      const boundaryOffset = (Math.random() - 0.5) * (angleSegment / 3);
-      const finalRotation = 360 * 6 - selectedAngle - offsetAngle + boundaryOffset - 90;
+      const finalRotation = 360 * 6 - selectedAngle - offsetAngle - 90;
 
       const startTime = performance.now();
 
@@ -278,20 +281,20 @@
       const modal = document.getElementById('resultModal');
       modal.style.display = 'block';
       document.getElementById('modalContent').textContent = content;
+      showConfetti();
     }
 
     function closeModal() {
       const modal = document.getElementById('resultModal');
       modal.style.display = 'none';
 
-      // Xóa kim tuyến khi modal được đóng
       const confettiContainer = document.getElementById('confettiContainer');
       confettiContainer.innerHTML = '';
     }
 
     function showConfetti() {
       const confettiContainer = document.getElementById('confettiContainer');
-      confettiContainer.innerHTML = ''; // Xóa kim tuyến cũ (nếu có)
+      confettiContainer.innerHTML = '';
 
       for (let i = 0; i < 100; i++) {
         const piece = document.createElement('div');
