@@ -11,11 +11,16 @@
       align-items: center;
       justify-content: center;
       font-family: Arial, sans-serif;
+      background-image: url('background.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      color: white;
     }
     h1 {
       font-size: 2.5rem;
-      color: #FF5733;
-      text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+      color: #FFD700;
+      text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
       margin-bottom: 20px;
     }
     .wheel-container {
@@ -27,6 +32,7 @@
       border: 5px solid #ccc;
       box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
       margin-top: 20px;
+      background-color: rgba(0, 0, 0, 0.5); /* Làm nổi vòng quay */
     }
     .indicator {
       position: absolute;
@@ -35,7 +41,7 @@
       transform: translate(-50%, -50%);
       width: 108px;
       height: 108px;
-      background-color: #333;
+      background-color: #333; /* Đổi màu nền của mũi tên thành đen */
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -53,7 +59,7 @@
       height: 0;
       border-left: 27px solid transparent;
       border-right: 27px solid transparent;
-      border-bottom: 36px solid #333;
+      border-bottom: 36px solid #333; /* Giữ màu đen cho mũi tên */
     }
     .indicator span {
       color: white;
@@ -71,10 +77,10 @@
       border-radius: 5px;
     }
     button.selected {
-      background-color: #4CAF50;
-      color: white;
+      background-color: #FFD700;
+      color: black;
       font-weight: bold;
-      box-shadow: 0 0 10px rgba(76, 175, 80, 0.8);
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
     }
     .modal {
       position: fixed;
