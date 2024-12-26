@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TOLO Lucky Draw</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: Arial, sans-serif;
+    }
+    h1 {
+      font-size: 2.5rem;
+      color: #FF5733;
+      text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+      margin-bottom: 20px;
+    }
+    .wheel-container {
+      position: relative;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 5px solid #ccc;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+      margin-top: 20px;
+    }
+    .indicator {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 108px;
+      height: 108px;
+      background-color: #333;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+    }
+    .indicator::before {
+      content: '';
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 27px solid transparent;
+      border-right: 27px solid transparent;
+      border-bottom: 36px solid #333;
+    }
+    .indicator span {
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #ccc;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    button.selected {
+      background-color: #4CAF50;
+      color: white;
+      font-weight: bold;
+      box-shadow: 0 0 10px rgba(76, 175, 80, 0.8);
+    }
+    .modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80%;
+      max-width: 300px;
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      display: none;
+      z-index: 1000;
+      text-align: center;
+    }
+    .modal h2 {
+      font-size: 2.5rem;
+      color: #FF5733;
+      margin-bottom: 20px;
+    }
+    .modal button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .confetti {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 999;
+    }
+    .confetti-piece {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background-color: rgba(255, 87, 51, 0.8);
+      animation: fall 3s ease-out forwards;
+    }
+    @keyframes fall {
+      0% {
+        transform: translateY(-100%) rotate(0deg);
+      }
+      100% {
+        transform: translateY(100vh) rotate(360deg);
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>TOLO Lucky Draw</h1>
+  <div id="result">
+    <span class="lucky-number" id="number1">??</span>
+    <span class="lucky-number" id="number2">??</span>
+    <span class="lucky-number" id="number3">??</span>
+  </div>
+  <div>
+    <button id="draw1" onclick="selectPair(1)">First Pair</button>
+    <button id="draw2" onclick="selectPair(2)">Second Pair</button>
+    <button id="draw3" onclick="selectPair(3)">Third Pair</button>
+    <button id="reset" onclick="resetResults()">Reset</button>
+  </div>
+  <div class="wheel-container">
+    <canvas id="wheelCanvas" width="500" height="500"></canvas>
+    <div class="indicator" onclick="spinSelectedPair()">
+      <span>SPIN</span>
+    </div>
+  </div>
+  <div class="modal" id="resultModal">
+    <h2 id="modalContent"></h2>
+    <button onclick="closeModal()">Close</button>
+  </div>
+  <div class="confetti" id="confettiContainer"></div>
+
+  <script>
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+    const pools = [
+      ['TO', 'LO', 'TO', 'LO', 'TO', 'LO'],
+      ['01', '02', '03', '04', '05'],
+      ['11', '22', '33', '44', '55', '66']
+    ];
+    const colors = ['#FF5733', '#33FF57', '#3357FF', '#FF33A1', '#F3FF33', '#FF8C33'];
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+
+    let selectedPool = null;
+
+    function drawWheelAtAngle(pool, angle) {
+      const numSegments = pool.length;
+      const angleSegment = Math.PI * 2 / numSegments;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < numSegments; i++) {
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        const startAngle = angle + i * angleSegment;
+        const endAngle = startAngle + angleSegment;
+        ctx.arc(centerX, centerY, centerX, startAngle, endAngle);
+        ctx.lineTo(centerX, centerY);
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.fill();
+
+        // Text
+        const textAngle = startAngle + angleSegment / 2;
+        const x = centerX + 180 * Math.cos(textAngle);
+        const y = centerY + 180 * Math.sin(textAngle);
+        ctx.fillStyle = 'white';
+        ctx.font = '20px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(pool[i], x, y);
+      }
+    }
+
+    function spinSelectedPair() {
+      if (!selectedPool) {
+        alert('Please select a pair first!');
+        return;
+      }
+
+      spinWheel(selectedPool, 8000, (result) => {
+        const index = pools.indexOf(selectedPool) + 1;
+        document.getElementById(`number${index}`).textContent = result;
+
+        if (index === 3) {
+          showConfetti();
+          showModal(`${document.getElementById('number1').textContent} ${document.getElementById('number2').textContent} ${document.getElementById('number3').textContent}`);
+        } else {
+          showModal(result);
+        }
+      });
+    }
+
+    function spinWheel(pool, duration, callback) {
+      const numSegments = pool.length;
+      const angleSegment = 360 / numSegments;
+      const randomIndex = Math.floor(Math.random() * numSegments);
+
+      const selectedAngle = randomIndex * angleSegment;
+      const offsetAngle = angleSegment / 2;
+      const boundaryOffset = (Math.random() - 0.5) * (angleSegment / 3);
+      const finalRotation = 360 * 6 - selectedAngle - offsetAngle + boundaryOffset - 90;
+
+      const startTime = performance.now();
+
+      function easeOutQuart(t) {
+        return 1 - Math.pow(1 - t, 4);
+      }
+
+      function animate(currentTime) {
+        const elapsedTime = currentTime - startTime;
+        const progress = elapsedTime / duration;
+
+        if (progress < 1) {
+          const easedProgress = easeOutQuart(progress);
+          const currentAngle = easedProgress * finalRotation;
+          drawWheelAtAngle(pool, currentAngle * Math.PI / 180);
+          requestAnimationFrame(animate);
+        } else {
+          drawWheelAtAngle(pool, finalRotation * Math.PI / 180);
+          callback(pool[randomIndex]);
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    function showModal(content) {
+      const modal = document.getElementById('resultModal');
+      modal.style.display = 'block';
+      document.getElementById('modalContent').textContent = content;
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('resultModal');
+      modal.style.display = 'none';
+
+      // Xóa kim tuyến khi modal được đóng
+      const confettiContainer = document.getElementById('confettiContainer');
+      confettiContainer.innerHTML = '';
+    }
+
+    function showConfetti() {
+      const confettiContainer = document.getElementById('confettiContainer');
+      confettiContainer.innerHTML = ''; // Xóa kim tuyến cũ (nếu có)
+
+      for (let i = 0; i < 100; i++) {
+        const piece = document.createElement('div');
+        piece.classList.add('confetti-piece');
+        piece.style.left = `${Math.random() * 100}%`;
+        piece.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+        piece.style.animationDelay = `${Math.random() * 2}s`;
+        confettiContainer.appendChild(piece);
+      }
+    }
+
+    function selectPair(pairIndex) {
+      document.querySelectorAll('button').forEach(button => button.classList.remove('selected'));
+      document.getElementById(`draw${pairIndex}`).classList.add('selected');
+      selectedPool = pools[pairIndex - 1];
+      drawWheelAtAngle(selectedPool, 0);
+    }
+
+    function resetResults() {
+      selectedPool = null;
+      document.querySelectorAll('button').forEach(button => button.classList.remove('selected'));
+      for (let i = 1; i <= 3; i++) {
+        document.getElementById(`number${i}`).textContent = '??';
+      }
+    }
+
+    drawWheelAtAngle(pools[0], 0);
+  </script>
+</body>
+</html>
